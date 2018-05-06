@@ -1,0 +1,81 @@
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NfcScaner</title>
+<script src="js/jquery-3.3.1.min.js"></script>
+<script src="phonegap.js"></script>
+</head>
+<body>
+<h4 id="loglabel">Инициализация...</h4>
+<p id="desclabel">Рендеринг окна</p>
+<script>
+var log = undefined;
+var desc = undefined;
+
+var serverurl=undefined;
+
+$(document).ready(function() {
+$.support.cors = true;
+log = document.getElementById("loglabel");
+desc = document.getElementById("desclabel");
+desc.innerHTML="Запуск скриптов";
+document.addEventListener("deviceready", onDeviceReady, false); 
+});
+
+function onDeviceReady(){
+desc.innerHTML="Запрос прав!";
+window.QRScanner.prepare(onScanInit);
+}
+
+function onScanInit(err, status){
+if (err) {
+log.innerHTML="Ощибка!";
+desc.innerHTML=err;
+}
+if (status.authorized) {
+log.innerHTML="Отсканируйте код...";
+desc.innerHTML="Наведите камеру на Qr код в окне модуля 1С для чтения nfc карт!";
+window.QRScanner.scan(onScan);
+window.QRScanner.show();
+} 
+else if (status.denied) {
+alert("Требуется предоставить право доступа к камере.");
+window.QRScanner.openSettings();
+alert("Для работы с камерой требуется перезапустить приложение!");
+navigator.app.exitApp();
+} 
+else {
+alert("Не удается подключиться к камере. Приложение будет закрыто!");
+navigator.app.exitApp();
+}
+}
+
+function onScan(err, text){
+if(err){
+log.innerHTML="Ощибка!";
+desc.innerHTML=err;
+} 
+else {
+log.innerHTML="Код отсканирован!";
+desc.innerHTML="Ожидание nfc тега...";
+
+serverurl=text;
+nfc.addTagDiscoveredListener(onNfc, function(result) {}, function(reason) { alert("Не удается проинициализировать считыватель NFC тегов. "+reason+" Приложение будет закрыто!"); navigator.app.exitApp();});
+window.QRScanner.hide();
+}
+}
+
+function onNfc(nfcEvent) {
+var responce="";
+var id=nfcEvent.tag.id
+for (var i = 0; i!=id.length; i++) {
+responce=responce+id[i];
+}
+window.open(serverurl+"?Qr="+responce, '_system');
+window.location.reload();
+}
+
+</script>
+</body>
+</html>
