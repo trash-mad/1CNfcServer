@@ -96,8 +96,10 @@ namespace NfcServer
 
                 int port = 8080;
                 string baseurl = string.Format("http://{0}:{1}/", lanadderss,port);
+                string localurl = string.Format("http://127.0.0.1:{0}/", port);
                 listener = new HttpListener();
                 listener.Prefixes.Add(baseurl);
+                listener.Prefixes.Add(localurl);
 
                 try
                 {
@@ -108,7 +110,7 @@ namespace NfcServer
                     //Задать запись в реестр для раздачи порта
                     ProcessStartInfo startInfo = new ProcessStartInfo("cmd.exe");
                     startInfo.Verb = "runas";
-                    startInfo.Arguments = "/c netsh http add urlacl url="+ baseurl + " user=".Replace("'", "\"") + System.Security.Principal.WindowsIdentity.GetCurrent().Name;
+                    startInfo.Arguments = "/c netsh http add urlacl url="+ baseurl + " user=".Replace("'", "\"") + System.Security.Principal.WindowsIdentity.GetCurrent().Name+" &netsh http add urlacl url="+ localurl + " user=".Replace("'", "\"") + System.Security.Principal.WindowsIdentity.GetCurrent().Name+"&pause";
                     try
                     {
                         Process.Start(startInfo);
